@@ -122,9 +122,38 @@ function CubeMesh({ api }: { api: React.RefObject<CubeHandle | null> }) {
     });
   };
 
+  const applyInstant = (moves: string[]) => {
+    moves.forEach((m) => {
+      const def = MOVES[m[0] as string];
+      if (!def) return;
+      const turns = m.endsWith("2") ? 2 : 1;
+      const sign = m.endsWith("'") ? -1 : 1;
+      const q = new THREE.Quaternion().setFromAxisAngle(
+        def.axis,
+        (Math.PI / 2) * turns * def.dir * sign,
+      );
+      cubies.forEach((c) => {
+        if (Math.round(c.pos[def.comp]) !== def.layer) return;
+        c.pos.applyQuaternion(q).round();
+        c.quat.premultiply(q);
+      });
+    });
+    applyTransforms();
+  };
+
   useImperativeHandle(api, () => ({
     queue: (moves: string[]) => {
       queueRef.current.push(...moves);
+    },
+    setScramble: (moves: string[]) => {
+      queueRef.current = [];
+      anim.current = null;
+      historyRef.current = [];
+      cubies.forEach((c) => {
+        c.pos.copy(c.home);
+        c.quat.identity();
+      });
+      applyInstant(moves);
     },
     reset: () => {
       queueRef.current = [];
