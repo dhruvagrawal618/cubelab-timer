@@ -181,14 +181,15 @@ function CubeMesh({ api }: { api: React.RefObject<CubeHandle | null> }) {
             }
           }}
         >
-          <RoundedBox args={[0.96, 0.96, 0.96]} radius={0.09} smoothness={3} castShadow>
-            <meshStandardMaterial attach="material-0" color={c.home.x === 1 ? COLORS.R : COLORS.inner} roughness={0.35} />
-            <meshStandardMaterial attach="material-1" color={c.home.x === -1 ? COLORS.L : COLORS.inner} roughness={0.35} />
-            <meshStandardMaterial attach="material-2" color={c.home.y === 1 ? COLORS.U : COLORS.inner} roughness={0.35} />
-            <meshStandardMaterial attach="material-3" color={c.home.y === -1 ? COLORS.D : COLORS.inner} roughness={0.35} />
-            <meshStandardMaterial attach="material-4" color={c.home.z === 1 ? COLORS.F : COLORS.inner} roughness={0.35} />
-            <meshStandardMaterial attach="material-5" color={c.home.z === -1 ? COLORS.B : COLORS.inner} roughness={0.35} />
+          <RoundedBox args={[0.97, 0.97, 0.97]} radius={0.1} smoothness={3}>
+            <meshStandardMaterial color={COLORS.inner} roughness={0.6} />
           </RoundedBox>
+          {STICKERS.filter((s) => c.home[s.comp] === s.layer).map((s) => (
+            <mesh key={s.key} position={s.position} rotation={s.rotation}>
+              <planeGeometry args={[0.8, 0.8]} />
+              <meshStandardMaterial color={s.color} roughness={0.3} />
+            </mesh>
+          ))}
         </group>
       ))}
     </group>
