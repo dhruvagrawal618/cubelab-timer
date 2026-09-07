@@ -247,9 +247,26 @@ function CubeMesh({ api }: { api: React.RefObject<CubeHandle | null> }) {
 export const Cube3D = forwardRef<CubeHandle, { overlay?: ReactNode }>(
   function Cube3D({ overlay }, ref) {
     const inner = useRef<CubeHandle | null>(null);
+    const pending = useRef<((h: CubeHandle) => void)[]>([]);
+
+    const run = (fn: (h: CubeHandle) => void) => {
+      if (inner.current) fn(inner.current);
+      else {
+        pending.current = [fn];
+        const id = window.setInterval(() => {
+          if (inner.current) {
+            window.clearInterval(id);
+            pending.current.forEach((p) => p(inner.current as CubeHandle));
+            pending.current = [];
+          }
+        }, 60);
+      }
+    };
+
     useImperativeHandle(ref, () => ({
-      queue: (m) => inner.current?.queue(m),
-      reset: () => inner.current?.reset(),
+      queue: (m) => run((h) => h.queue(m)),
+      setScramble: (m) => run((h) => h.setScramble(m)),
+      reset: () => run((h) => h.reset()),
       history: () => inner.current?.history() ?? [],
       clearHistory: () => inner.current?.clearHistory(),
       isBusy: () => inner.current?.isBusy() ?? false,
