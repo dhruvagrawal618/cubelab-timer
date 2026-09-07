@@ -19,7 +19,7 @@ export const EVENTS: { id: EventId; name: string; short: string }[] = [
   { id: "sq1", name: "Square-1", short: "Sq-1" },
 ];
 
-const pick = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
+const pick = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)] as T;
 const randInt = (min: number, max: number) =>
   min + Math.floor(Math.random() * (max - min + 1));
 
