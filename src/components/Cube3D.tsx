@@ -74,6 +74,7 @@ type Cubie = {
 
 export type CubeHandle = {
   queue: (moves: string[]) => void;
+  setScramble: (moves: string[]) => void;
   reset: () => void;
   history: () => string[];
   clearHistory: () => void;
