@@ -148,7 +148,6 @@ function Home() {
           onClick={() => {
             cube.current?.reset();
             cube.current?.queue(parseMoves(generateScramble("333")));
-            cube.current?.clearHistory();
           }}
           className="inline-flex items-center justify-center gap-2 rounded-lg bg-secondary px-3 py-2 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/70"
         >

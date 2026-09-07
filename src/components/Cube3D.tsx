@@ -154,6 +154,7 @@ function CubeMesh({ api }: { api: React.RefObject<CubeHandle | null> }) {
         c.quat.identity();
       });
       applyInstant(moves);
+      historyRef.current = [...moves];
     },
     reset: () => {
       queueRef.current = [];
