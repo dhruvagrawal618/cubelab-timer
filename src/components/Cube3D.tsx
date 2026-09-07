@@ -21,6 +21,24 @@ const COLORS = {
 
 type MoveDef = { axis: THREE.Vector3; layer: number; comp: "x" | "y" | "z"; dir: number };
 
+const D = 0.5;
+const H = Math.PI / 2;
+const STICKERS: {
+  key: string;
+  comp: "x" | "y" | "z";
+  layer: number;
+  color: string;
+  position: [number, number, number];
+  rotation: [number, number, number];
+}[] = [
+  { key: "R", comp: "x", layer: 1, color: COLORS.R, position: [D, 0, 0], rotation: [0, H, 0] },
+  { key: "L", comp: "x", layer: -1, color: COLORS.L, position: [-D, 0, 0], rotation: [0, -H, 0] },
+  { key: "U", comp: "y", layer: 1, color: COLORS.U, position: [0, D, 0], rotation: [-H, 0, 0] },
+  { key: "Dn", comp: "y", layer: -1, color: COLORS.D, position: [0, -D, 0], rotation: [H, 0, 0] },
+  { key: "F", comp: "z", layer: 1, color: COLORS.F, position: [0, 0, D], rotation: [0, 0, 0] },
+  { key: "B", comp: "z", layer: -1, color: COLORS.B, position: [0, 0, -D], rotation: [0, Math.PI, 0] },
+];
+
 const MOVES: Record<string, MoveDef> = {
   U: { axis: new THREE.Vector3(0, 1, 0), layer: 1, comp: "y", dir: -1 },
   D: { axis: new THREE.Vector3(0, 1, 0), layer: -1, comp: "y", dir: 1 },
