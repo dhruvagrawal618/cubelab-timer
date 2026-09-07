@@ -73,13 +73,9 @@ function Home() {
     (ev: EventId) => {
       const s = generateScramble(ev);
       setScramble(s);
-      if (ev === "333" || ev === "444" || ev === "555" || ev === "222") {
-        cube.current?.reset();
-        cube.current?.queue(parseMoves(s));
-        cube.current?.clearHistory();
-      } else {
-        cube.current?.reset();
-      }
+      const moves = parseMoves(s);
+      if (moves.length) cube.current?.setScramble(moves);
+      else cube.current?.reset();
     },
     [],
   );
