@@ -277,7 +277,7 @@ export function solveCFOP(scrambleState: State): Stage[] | null {
     const goal = (st: State) =>
       edgeOk(st, target) && placed.every((e) => edgeOk(st, e));
     const sol = idSearch(s, ["U", "D", "L", "R", "F", "B"], 7, goal);
-    if (!sol) return null;
+    if (!sol) { if ((globalThis as any).CFOP_DEBUG) console.log("stage fail at line", new Error().stack?.split("\n")[1]); return null; }
     push("Cross", sol);
     placed.push(target);
   }
@@ -292,13 +292,13 @@ export function solveCFOP(scrambleState: State): Stage[] | null {
 
     if (!cornerOk(s, slot.corner)) {
       const sol = idSearch(s, ALL_FACES, 8, (st) => keep(st) && cornerOk(st, slot.corner));
-      if (!sol) return null;
+      if (!sol) { if ((globalThis as any).CFOP_DEBUG) console.log("stage fail at line", new Error().stack?.split("\n")[1]); return null; }
       push("F2L", sol);
     }
     if (!edgeOk(s, slot.edge)) {
       const algs = [mapSeq(INSERT_RIGHT, i), mapSeq(INSERT_LEFT, i)];
       const sol = multiAlgLoop(s, algs, 4, (st) => keep(st) && pairDone(st, i));
-      if (!sol) return null;
+      if (!sol) { if ((globalThis as any).CFOP_DEBUG) console.log("stage fail at line", new Error().stack?.split("\n")[1]); return null; }
       push("F2L", sol);
     }
   }
@@ -307,24 +307,24 @@ export function solveCFOP(scrambleState: State): Stage[] | null {
   // ---- OLL (2-look) ----
   if (!eoDone(s)) {
     const sol = algLoop(s, EO_ALG, 3, eoDone);
-    if (!sol) return null;
+    if (!sol) { if ((globalThis as any).CFOP_DEBUG) console.log("stage fail at line", new Error().stack?.split("\n")[1]); return null; }
     push("OLL", sol);
   }
   if (!coDone(s)) {
     const sol = algLoop(s, SUNE, 5, (st) => coDone(st) && eoDone(st));
-    if (!sol) return null;
+    if (!sol) { if ((globalThis as any).CFOP_DEBUG) console.log("stage fail at line", new Error().stack?.split("\n")[1]); return null; }
     push("OLL", sol);
   }
 
   // ---- PLL (2-look) ----
   if (!cpDone(s)) {
     const sol = algLoop(s, CORNER_CYCLE, 3, cpDone);
-    if (!sol) return null;
+    if (!sol) { if ((globalThis as any).CFOP_DEBUG) console.log("stage fail at line", new Error().stack?.split("\n")[1]); return null; }
     push("PLL", sol);
   }
   if (!isSolved(s)) {
     const sol = algLoop(s, U_PERM, 4, isSolved);
-    if (!sol) return null;
+    if (!sol) { if ((globalThis as any).CFOP_DEBUG) console.log("stage fail at line", new Error().stack?.split("\n")[1]); return null; }
     push("PLL", sol);
   }
 
