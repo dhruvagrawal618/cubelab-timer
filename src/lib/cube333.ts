@@ -194,12 +194,58 @@ function algLoop(
   return null;
 }
 
+/** BFS over repetitions of several algorithms with AUF between each repetition. */
+function multiAlgLoop(
+  s: State,
+  algs: string[][],
+  maxReps: number,
+  goal: (s: State) => boolean,
+): string[] | null {
+  const aufs = [[], ["U"], ["U'"], ["U2"]];
+  type Node = { st: State; seq: string[] };
+  let frontier: Node[] = [{ st: s, seq: [] }];
+  for (const finalAuf of aufs) if (goal(applyMoves(s, finalAuf))) return finalAuf;
+  for (let rep = 0; rep < maxReps; rep++) {
+    const next: Node[] = [];
+    for (const node of frontier) {
+      for (const auf of aufs) {
+        for (const alg of algs) {
+          const step = [...auf, ...alg];
+          const st = applyMoves(node.st, step);
+          const seq = [...node.seq, ...step];
+          for (const finalAuf of aufs) {
+            if (goal(applyMoves(st, finalAuf))) return [...seq, ...finalAuf];
+          }
+          next.push({ st, seq });
+        }
+      }
+    }
+    frontier = next;
+  }
+  return null;
+}
+
 const A = (s: string) => s.split(" ");
 
+const ALL_FACES = ["U", "D", "L", "R", "F", "B"];
+const FACE_CYCLE: Record<string, string> = { R: "F", F: "L", L: "B", B: "R", U: "U", D: "D" };
+
+/** Rotate a move sequence around the U axis, so FR-slot algorithms work on any slot. */
+function mapSeq(seq: string[], times: number): string[] {
+  let out = seq;
+  for (let t = 0; t < times; t++) {
+    out = out.map((m) => (FACE_CYCLE[m[0] as string] as string) + m.slice(1));
+  }
+  return out;
+}
+
+const INSERT_RIGHT = A("U R U' R' U' F' U F");
+const INSERT_LEFT = A("U' F' U F U R U' R'");
 const EO_ALG = A("F R U R' U' F'");
 const SUNE = A("R U R' U R U2 R'");
 const CORNER_CYCLE = A("U R U' L' U R' U' L");
 const U_PERM = A("R U' R U R U R U' R' U' R2");
+
 
 const eoDone = (s: State) => [0, 1, 2, 3].every((e) => s.eo[e] === 0);
 const coDone = (s: State) => [0, 1, 2, 3].every((c) => s.co[c] === 0);
@@ -236,7 +282,7 @@ export function solveCFOP(scrambleState: State): Stage[] | null {
     placed.push(target);
   }
 
-  // ---- F2L: pair by pair ----
+  // ---- F2L: pair by pair (corner into the slot, then the slot edge) ----
   for (let i = 0; i < SLOTS.length; i++) {
     if (pairDone(s, i)) continue;
     const slot = SLOTS[i] as (typeof SLOTS)[number];
@@ -244,23 +290,19 @@ export function solveCFOP(scrambleState: State): Stage[] | null {
       crossDone(st) &&
       SLOTS.every((sl, j) => j >= i || (cornerOk(st, sl.corner) && edgeOk(st, sl.edge)));
 
-    // Phase A: bring corner + edge into the U layer (if they aren't already).
-    const cornerAt = (st: State) => st.cp.indexOf(slot.corner);
-    const edgeAt = (st: State) => st.ep.indexOf(slot.edge);
-    if (!(inULayer(cornerAt(s)) && inULayer(edgeAt(s)))) {
-      const setup = idSearch(s, slot.faces, 6, (st) =>
-        keep(st) && ((inULayer(cornerAt(st)) && inULayer(edgeAt(st))) || pairDone(st, i)),
-      );
-      if (setup) push("F2L", setup);
+    if (!cornerOk(s, slot.corner)) {
+      const sol = idSearch(s, ALL_FACES, 8, (st) => keep(st) && cornerOk(st, slot.corner));
+      if (!sol) return null;
+      push("F2L", sol);
     }
-
-    if (pairDone(s, i)) continue;
-    // Phase B: insert the pair.
-    let sol = idSearch(s, slot.faces, 9, (st) => keep(st) && pairDone(st, i));
-    if (!sol) sol = idSearch(s, ["U", "D", "L", "R", "F", "B"], 8, (st) => keep(st) && pairDone(st, i));
-    if (!sol) return null;
-    push("F2L", sol);
+    if (!edgeOk(s, slot.edge)) {
+      const algs = [mapSeq(INSERT_RIGHT, i), mapSeq(INSERT_LEFT, i)];
+      const sol = multiAlgLoop(s, algs, 4, (st) => keep(st) && pairDone(st, i));
+      if (!sol) return null;
+      push("F2L", sol);
+    }
   }
+
 
   // ---- OLL (2-look) ----
   if (!eoDone(s)) {
